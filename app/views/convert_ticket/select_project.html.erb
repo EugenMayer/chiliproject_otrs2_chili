@@ -1,0 +1,121 @@
+<h1><%=t :select_project_and_ticket_title %></h1>
+
+<% form_for @issue, :as => :copy_from, :url => url_for(:controller => "issues", :action => "new"), :method => :post do |f| %>
+    <%= f.hidden_field :description %>
+    <%= hidden_field_tag "issue[custom_field_values][#{@otrsField.id}]", "ref:" + params[:id] %>
+    <%= hidden_field_tag "issue[custom_field_values][#{@ticketTypeField.id}]", @ticket_type_value %>
+    <%=t :project %>: <%= f.select :project_id, @projects.collect {|p| [p.name, p.id]},
+                                   {:required => true, :prompt => "Select a project"},
+                                   {:class => "chzn-select", :id => "ticket-project"}%> <br />
+    <%=t :title %>: <%= f.text_field :subject , :id => "ticket-title"%>
+    <!-- button_tag is not recognized for some reason. no onClick needed, as view is updated in text_field onChange anyway.
+         The button just makes the text field loose focus. This way it also updates when the user switches from the
+         test field to the project list -->
+    <input type="button" id="update-similar-tickets" value="<%= t :label_update_list %>" >
+    <%= check_box_tag "search-all-projects" %> <%= t :label_search_in_all_projects %>
+    <br />
+    <%= f.submit t(:create_new_ticket) %>
+<% end %>
+<%= t :label_or %>
+<%= t :update_existing_ticket %>
+<% form_tag( {:controller => "issues", :action => "edit", :id => ""}, {:method => "post", :id => "update-existing-issue-form"}) do %>
+    <%= hidden_field_tag "notes", @otrsTicket.otrs_ticket_body %>
+    <%= hidden_field_tag "issue[custom_field_values][#{@otrsField.id}]", "", :id => "otrs-ticket-ids" %>
+    <%= hidden_field_tag "issue[custom_field_values][#{@ticketTypeField.id}]", @ticket_type_value %>
+    <%= hidden_field_tag "id", "", :id => "chili-ticket-id" %>
+<% end %>
+
+<ul id="submit-links-ticket-update">
+
+</ul>
+
+<div class="autoscroll">
+<table id="submit-links-ticket-update-table" class="list issues">
+    <thead><tr>
+      <th>#</th>
+      <th>Tracker</th>
+      <th>Status</th>
+      <th>Subject</th>
+      <th>Project</th>
+	</tr></thead>
+	<tbody>
+	</tbody>
+</table>
+</div>
+
+
+<script type="text/javascript">
+    // do not access this with $("...")
+    // See http://codeimpossible.com/2010/01/13/solving-document-ready-is-not-a-function-and-other-problems/
+    jQuery(document).ready(function(){
+        jQuery(".chzn-select").chosen();
+
+        function getSimilarTickets() {
+            var search_params = { query: jQuery("#ticket-title").val() };
+            if (jQuery("#search-all-projects:checked").val() == undefined) {
+                search_params.project_id = jQuery("#ticket-project").val();
+            }
+            jQuery('#ajax-indicator').show();
+            jQuery.getJSON(
+                "<%= url_for :controller => "search_similar_issues" %>", search_params,
+                function(response) {
+                    var self = this;
+                    jQuery("#submit-links-ticket-update-table").find('tbody').html("");
+                    jQuery.each(response.issues, function(i, issue_object) {
+                        var issue = issue_object.issue;
+                        var otrs_ticket_ids = "";
+                        jQuery.each(issue.custom_values, function(i, custom_value) {
+                            if (custom_value.custom_field_id == "<%= @otrsField.id %>") {
+                                otrs_ticket_ids = custom_value.value;
+                            }
+                        });
+
+                        var link_tag = "<a href='javascript:void(0)' id='submit-link-" + i + "'>"
+                        jQuery("#submit-links-ticket-update-table").find('tbody')
+                            .append(jQuery('<tr class="issue">')
+                                .append(jQuery('<td class="id">')
+                                    .append(issue.id)
+                                )
+                                .append(jQuery('<td class="tracker">')
+                                    .append(issue.tracker.name)
+                                )
+                                .append(jQuery('<td class="status">')
+                                    .append(issue.status.name)
+                                )
+                                .append(jQuery('<td class="subject">')
+                                    .append(jQuery(link_tag)
+                                        .append(issue.subject)
+                                    )
+                                )
+                                .append(jQuery('<td class="project">')
+                                    .append(issue.project.name)
+                                )
+                            );
+
+                        jQuery('#submit-link-' + i).bind("click", function() {
+                            var new_otrs_ticket_ids = "ref:<%= params[:id] %>";
+                            if (otrs_ticket_ids != "") {
+                                new_otrs_ticket_ids = otrs_ticket_ids + "," + new_otrs_ticket_ids;
+                            }
+                            jQuery("#chili-ticket-id").val(issue.id);
+                            jQuery("#otrs-ticket-ids").val(new_otrs_ticket_ids);
+                            jQuery("#update-existing-issue-form").submit();
+                        });
+                    });
+                    jQuery('#ajax-indicator').hide();
+                }
+            );
+        }
+
+        getSimilarTickets();
+        jQuery("#ticket-title").change(getSimilarTickets);
+        jQuery("#ticket-project").change(getSimilarTickets);
+        jQuery("#search-all-projects").change(getSimilarTickets);
+
+    });
+</script>
+
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'chosen/chosen.css', :plugin => 'otrs2_chili' %>
+    <%= javascript_include_tag "chosen/chosen.jquery.js", :plugin => 'otrs2_chili'  %>
+<% end %>

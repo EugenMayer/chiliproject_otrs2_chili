@@ -1,0 +1,17 @@
+# English strings go here for Rails i18n
+en:
+  select_project_and_ticket_title: "Select project and ticket title"
+  project: "Project"
+  title: "Title"
+  create_new_ticket: "Create new ticket"
+  update_existing_ticket: "update an existing ticket"
+  label_update_list: "Update list"
+  label_or: "or"
+  label_otrs_urls: "OTRS URLs"
+  label_otrs_ticket_base_link: "Link to OTRS Tickets (use &lt;id&gt; as placeholder for ticket id)"
+  label_cors_allowed_origin: "Allowed-Origin Header for CORS requests"
+  label_otrs_links_custom_field: "Custom Field used for OTRS ticket links"
+  label_ticket_type_value: "Ticket type set for all newly created or updated tickets"
+  label_number_of_returned_results: "number of returned results in similar ticket search"
+  label_stop_words: "Stop words that should be excluded from similarity search (CSV)"
+  label_search_in_all_projects: "Search in all projects"

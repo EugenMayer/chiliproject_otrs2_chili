@@ -1,0 +1,49 @@
+= Chiliproject/Redmine OTRS2Chili Plugin
+
+Allows to link OTRS Tickets to chili. Multiple OTRS tickets can be linked to one chili ticket, which will contain links
+to all of them. Newly created chili tickets will set a custom field to a specific value to allow serching and filtering
+for tickets created this way.
+
+== Getting the plugin
+
+A copy of the plugin can be downloaded from {GitHub}[https://github.com/EugenMayer/chiliproject_otrs2_chili]
+
+
+== Installation and Setup
+
+1. Make sure the plugin is installed in +vendor/plugins/chiliproject_otrs2_chili+
+2. Restart your Chiliproject/Redmine web servers (e.g. mongrel, thin, mod_rails)
+3. Create a custom field for OTRS ticket ids. This field has to use the CustomFieldFormat +OTRS Tickets+ that is added
+   by the plugin
+4. Create a custom field for the ticket type. For example you can add a text field called +Type+ with the possible
+   values +customer+ and +internal+
+5. Configure the plugin:
+  * OTRS base link: should look like this 'https://your.otrs.server/otrs/index.pl?Action=AgentTicketZoom;TicketID=<id>',
+  * CORS allowed origin: protocol and domain of your chili/redmine installation. Needed to allow a cross origin api request
+  * OTRS custom field: name of the custom field created in step 3.
+  * Ticket Type Custom field and value: enter the name of the field created in step 4. and add a value for all tickets
+    created via the plugin
+  * stop words: CSV list of words that are ignored when searching for similar existing tickets, e.g. +the+, +it+, etc.
+    (google for "stop words" to find a list for your language)
+  * Number of returned results: how many similar tickets should be shown
+6. Copy the folder +LinkTicketToChili+ to your OTRS installation and use module-tools to install it
+7. Create a custom field called +chiliticketid+ in OTRS and use its link property to create a link back to
+8. Create the role +linktickettochili+ in OTRS and add the users that are allowed to use the module
+9. OTRS Tickets are set to a special state called "In Bearbeitung" which you shoudl create as a +pending reminder+ state
+  The name of this state is hard coded atm (TODO: change this). The pending time of the ticket ist also hardcoded to
+  2 months.you can change both of them in +LinkTicketToChili\Kernel\Modules\AgentLinkTicketToChili.pm+
+10. Adjust the links in +LinkTicketToChili\Kernel\Output\HTML\Standard\AgentLinkTicketToChili.dtl+ (search for +urlStoreTicketData+)
+11. Enter your chili API key in your OTRS account settings
+
+
+== Usage
+
+Select a ticket in OTRS an click the "Link Ticket to chili" action in the ticket action menu. Follow the on-screen instructions.
+
+== License
+
+This plugin is licensed under the GNU AGPL v3. See COPYRIGHT.txt and AGPL.txt for details.
+
+== Sponsoring
+
+The development of this plugin was sponsored by {KontextWork}[http://kontextwork.de]

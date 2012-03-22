@@ -1,0 +1,5 @@
+The OTRS part of the plugin needs a lot less hard coding of options and should use localized instead of german strings.
+In particular
+ * All URLs in LinkTicketToChili\Kernel\Output\HTML\Standard\AgentLinkTicketToChili.dtl
+ * the new state of the otrs ticket
+ * The pending time for the otrs ticket

@@ -1,0 +1,19 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+one:
+  id: 1
+  id: 
+  created_at: 2012-02-06 14:30:57
+  otrs_ticket_id: MyString
+  otrs_ticket_body: MyText
+  otrs_ticket_title: MyString
+  chili_ticket_id: MyString
+  owner: MyString
+two:
+  id: 2
+  id: 
+  created_at: 2012-02-06 14:30:57
+  otrs_ticket_id: MyString
+  otrs_ticket_body: MyText
+  otrs_ticket_title: MyString
+  chili_ticket_id: MyString
+  owner: MyString

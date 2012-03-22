@@ -1,0 +1,34 @@
+<p>
+  <%=content_tag(:label, l(:label_otrs_ticket_base_link)) %>
+  <%=text_field_tag 'settings[otrs_ticket_base_link]', @settings['otrs_ticket_base_link'] %><br/>
+</p>
+
+<p>
+  <%=content_tag(:label, l(:label_cors_allowed_origin)) %>
+  <%=text_field_tag 'settings[cors_allowed_origin]', @settings['cors_allowed_origin'] %><br/>
+</p>
+
+<p>
+  <%=content_tag(:label, l(:label_otrs_links_custom_field)) %>
+  <%=text_field_tag 'settings[otrs_links_custom_field]', @settings['otrs_links_custom_field'] %><br/>
+</p>
+
+<p>
+  <%=content_tag(:label, l(:label_ticket_type_custom_field)) %>
+  <%=text_field_tag 'settings[ticket_type_custom_field]', @settings['ticket_type_custom_field'] %><br/>
+</p>
+
+<p>
+  <%=content_tag(:label, l(:label_ticket_type_value)) %>
+  <%=text_field_tag 'settings[ticket_type_value]', @settings['ticket_type_value'] %><br/>
+</p>
+
+<p>
+  <%=content_tag(:label, l(:label_number_of_returned_results)) %>
+  <%=text_field_tag 'settings[number_of_returned_results]', @settings['number_of_returned_results'] %><br/>
+</p>
+
+<p>
+  <%=content_tag(:label, l(:label_stop_words)) %>
+  <%=text_field_tag 'settings[stop_words]', @settings['stop_words'] %><br/>
+</p>

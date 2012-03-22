@@ -1,0 +1,262 @@
+# --
+# Copyright (C) 2012 Florian Pommerening (admin@praedisoft.de)
+# --
+
+<!-- start form -->
+
+<h1>Schicke Ticket $QData{"TicketID"} an Chili</h1>
+
+<ul>
+  <li id="checkingParameters" style="display: none">Überprüfen der Parameter
+    <ul>
+      <li id="checkingParameters_status"></li>
+    </ul>
+  </li>
+  <li id="sendingDataToChili" style="display: none">Daten werden an Chili geschickt
+    <ul>
+      <li id="sendingDataToChili_status">Bitte warten</li>
+    </ul>
+  </li>
+  <li id="creatingTicketinChili" style="display: none">Weiterleitung an Chili
+    <ul>
+      <li id="creatingTicketinChili_status">Bitte das Ticket in Chili erstellen und danach das Popup schließen</li>
+    </ul>
+  </li>
+  <li id="getIdFromChili" style="display: none">Chili wird nach ID gefragt
+    <ul>
+      <li id="getIdFromChili_status">Bitte warten</li>
+    </ul>
+  </li>
+  <li id="settingId" style="display: none">Chili Ticket ID wird gesetzt
+    <ul>
+      <li id="settingId_status">Bitte warten</li>
+    </ul>
+  </li>
+  <li id="deletingTemporaryData" style="display: none">Temporäre Daten werden gelöscht
+    <ul>
+      <li id="deletingTemporaryData_status">Bitte warten</li>
+    </ul>
+  </li>
+</ul>
+
+<a class="iframe" href=""></a>
+
+ <a href="$Env{"Baselink"}Action=AgentTicketZoom;TicketID=$LQData{"TicketID"}">Zurück zum Ticket</a>
+
+
+
+<!-- dtl:js_on_document_complete -->
+<script type="text/javascript">
+$(document).ready(function(){
+    var linkTicketWithChili = {
+        // Members
+        urlStoreTicketData:    "https://bugtracking.kontextwork.de/otrs_ticket/store_otrs_ticket",
+        urlDeleteTicketData:   "https://bugtracking.kontextwork.de/otrs_ticket/destroy",
+        urlStartChili:         "https://bugtracking.kontextwork.de/convert_ticket/select_project/<storageId>",
+        urlGetChiliTicketId:   "https://bugtracking.kontextwork.de/otrs_ticket/get_chili_ticket_id/<storageId>?key=<apiKey>&format=json",
+        urlStoreChiliTicketId: "https://support.kontextwork.de/otrs/index.pl",
+        urlTicketZoom:         "https://support.kontextwork.de/otrs/index.pl?Action=AgentTicketZoom;TicketID=<otrsTicketId>",
+        apiKey: null,
+        otrsTicketId: null,
+        otrsTicketTitle: null,
+        otrsTicketBody: null,
+        storageId: null,
+        chiliTicketId: null,
+
+        // Main method
+        run: function(otrsTicketId, otrsTicketTitle, otrsTicketBody, apiKey) {
+            var self = this;
+            if (apiKey == null || apiKey == "") {
+                self.statusUpdate('checkingParameters', 'Fehler: Kein API-Key gesetzt');
+                return;
+            }
+            if (otrsTicketId == null) {
+                self.statusUpdate('checkingParameters', 'Fehler: Keine OTRS Ticket-ID gesetzt');
+                return;
+            }
+            self.apiKey = apiKey;
+            self.otrsTicketId = otrsTicketId;
+            self.otrsTicketTitle = otrsTicketTitle;
+            self.otrsTicketBody = otrsTicketBody;
+            self.storageId = null;
+            self.chiliTicketId = null;
+            self.sendDataToChili(self.otrsTicketId, self.otrsTicketTitle, self.otrsTicketBody);
+        },
+
+        // Member functions
+
+        // Step 1: Store ticket data in Chili
+
+        sendDataToChili: function(otrsTicketId, otrsTicketTitle, otrsTicketBody) {
+            var self = this;
+            self.statusUpdate('sendingDataToChili', 'Bitte warten');
+            if (otrsTicketId == null) {
+                self.statusUpdate('sendingDataToChili', 'Fehler: Ohne Id aufgerufen');
+                return;
+            }
+            // needed for multipart form data format which is used by chili
+            var formData = new FormData();
+            formData.append("key", self.apiKey);
+            // needs to request json format, even if response is not actually json. This is necessary to count as an api request where the key can be used instead  of username/password
+            formData.append("format", "json");
+            formData.append("otrs_ticket_id", otrsTicketId);
+            formData.append("otrs_ticket_title", otrsTicketTitle);
+            formData.append("otrs_ticket_body", otrsTicketBody);
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                url: self.urlStoreTicketData,
+                data: formData,
+                contentType: false,
+                processData: false,
+// cannot use this method: need multipart for data
+//                data: {
+//                    key:               self.apiKey,
+//                    format:            "json",
+//                    otrs_ticket_id:    otrsTicketId,
+//                    otrs_ticket_title: otrsTicketTitle,
+//                    otrs_ticket_body:  otrsTicketBody
+//                },
+                success: function (data, textStatus, jqXHR) {
+                    self.storageId = data;
+                    self.statusUpdate('sendingDataToChili', 'Erledigt (Storage ID: ' + self.storageId + ')');
+                    self.openChiliInColorBox(self.storageId);
+                },
+                error: function (jqXHR, textStatus, error) {
+                    self.statusUpdate('sendingDataToChili', 'Fehler: ' + jqXHR.status + ' (' + textStatus + '): ' + error);
+                }
+            });
+        },
+
+        // Step 2: Switch to Chili an let user modify and save ticket there
+
+        openChiliInColorBox: function(storageId) {
+            var self = this;
+            self.statusUpdate('creatingTicketinChili', 'Bitte das Ticket in Chili erstellen und danach das Popup schließen');
+            if (storageId == null) {
+                self.statusUpdate('creatingTicketinChili', 'Fehler: Ohne Id aufgerufen');
+                return;
+            }
+            $(".iframe").colorbox({
+                href: self.urlStartChili.replace('<storageId>', storageId),
+                iframe:true,
+                width:"95%", height:"95%",
+                overlayClose:false,
+                escKey:false,
+                open:true,
+                onClosed: function() { 
+                    self.statusUpdate('creatingTicketinChili', 'Erledigt');
+                    self.getChiliId(storageId);
+                }
+            });
+        },
+
+        // Step 3: Get resulting ticket id from Chili
+
+        getChiliId: function(storageId) {
+            var self = this;
+            self.statusUpdate('getIdFromChili', 'Bitte warten');
+            if (storageId == null) {
+                self.statusUpdate('getIdFromChili', 'Fehler: Ohne Id aufgerufen');
+                return;
+            }
+            $.ajax({
+                type: 'GET',
+                url: self.urlGetChiliTicketId.replace('<storageId>', storageId).replace('<apiKey>', self.apiKey),
+                success: function(data, textStatus, jqXHR) {
+                    self.chiliTicketId = data;
+                    if (parseInt(self.chiliTicketId,10) == null || parseInt(self.chiliTicketId,10) < 0) {
+                        self.statusUpdate('getIdFromChili', 'Fehler: (Chili Id: ' + self.chiliTicketId + ')');
+                        return;
+                    }
+                    self.statusUpdate('getIdFromChili', 'Erledigt (Chili Id: ' + self.chiliTicketId + ')');
+                    self.saveChiliIdInTicket(self.chiliTicketId, self.otrsTicketId);
+                },
+                error: function (jqXHR, textStatus, error) {
+                    self.statusUpdate('getIdFromChili', 'Fehler: ' + jqXHR.status + ' (' + textStatus + '): ' + error);
+                }
+            });
+        },
+
+        // Step 4: Save Chili ticket id in otrs ticket
+        
+        saveChiliIdInTicket: function(chiliTicketId, otrsTicketId) {
+            var self = this;
+            self.statusUpdate('settingId', 'Bitte warten');
+            if (!chiliTicketId || !otrsTicketId) {
+                self.statusUpdate('settingId', 'Fehler: Ohne Id aufgerufen');
+                return;
+            }
+            var formData = new FormData();
+            formData.append("Action", "AgentLinkTicketToChili");
+            formData.append("Subaction", "SetChiliTicketID");
+            formData.append("TicketID", otrsTicketId);
+            formData.append("ChiliTicketID", chiliTicketId);
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                url: self.urlStoreChiliTicketId,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(data, textStatus, jqXHR) {
+                    self.statusUpdate('settingId', 'Erledigt');
+                    self.deleteTemporaryData(self.storageId);
+                },
+                error: function (jqXHR, textStatus, error) {
+                    self.statusUpdate('settingId', 'Fehler: ' + jqXHR.status + ' (' + textStatus + '): ' + error);
+                }
+            });
+        },
+        
+        // Step 5: Delete temporary data
+
+        deleteTemporaryData: function(storageId) {
+            var self = this;
+            self.statusUpdate('deletingTemporaryData', 'Bitte warten');
+            if (storageId == null) {
+                self.statusUpdate('deletingTemporaryData', 'Fehler: Ohne Id aufgerufen');
+                return;
+            }
+            // needed for multipart form data format which is used by chili
+            var formData = new FormData();
+            formData.append("key", self.apiKey);
+            // needs to request json format, even if response is not actually json. This is necessary to count as an api request where the key can be used instead  of username/password
+            formData.append("format", "json");
+            formData.append("id", storageId);
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                url: self.urlDeleteTicketData,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(data, textStatus, jqXHR) {
+                    self.statusUpdate('deletingTemporaryData', 'Erledigt');
+                    self.redirectToTicketView(self.otrsTicketId);
+                },
+                error: function (jqXHR, textStatus, error) {
+                    self.statusUpdate('deletingTemporaryData', 'Fehler: ' + jqXHR.status + ' (' + textStatus + '): ' + error);
+                }
+            });
+        },
+
+        // Step 6: Redirect back to ticketZoom 
+        
+        redirectToTicketView: function(otrsTicketId) {
+            var self = this;
+            window.location = self.urlTicketZoom.replace('<otrsTicketId>', otrsTicketId);
+        },
+        
+        statusUpdate: function(fieldId, statusMessage) {
+            var self = this;
+            $('#' + fieldId).show();
+            $('#' + fieldId + '_status').text(statusMessage);
+        }
+    };
+    
+    linkTicketWithChili.run("$QData{"TicketID"}", "$QData{"TicketTitle"}", "$QData{"TicketBody"}", "$QData{"ChiliAPIKey"}");
+});
+</script>
+<!-- dtl:js_on_document_complete -->
+<!-- end form -->
