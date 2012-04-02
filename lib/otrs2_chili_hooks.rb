@@ -29,7 +29,7 @@ class OTRS2ChiliHooks < Redmine::Hook::Listener
     otrs_ids = otrs_id_values.split(",")
     dereferenced_otrs_ids = otrs_ids.map { |id| dereference_otrs_id_and_set_backreference(id, chili_id) }
     if dereferenced_otrs_ids != otrs_ids
-      issue.custom_field_values = {otrs_field.id => dereferenced_otrs_ids.join(",")}
+      issue.custom_field_values = {otrs_field.id => dereferenced_otrs_ids.uniq.join(",")}
       return true
     end
     false
