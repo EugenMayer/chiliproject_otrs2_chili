@@ -15,3 +15,4 @@ en:
   label_number_of_returned_results: "number of returned results in similar ticket search"
   label_stop_words: "Stop words that should be excluded from similarity search (CSV)"
   label_search_in_all_projects: "Search in all projects"
+  label_default_project: "Default project to add new issues"

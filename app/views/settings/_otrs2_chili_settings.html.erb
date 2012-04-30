@@ -32,3 +32,9 @@
   <%=content_tag(:label, l(:label_stop_words)) %>
   <%=text_field_tag 'settings[stop_words]', @settings['stop_words'] %><br/>
 </p>
+
+<p>
+  <%=content_tag(:label, l(:label_default_project)) %>
+  <%=text_field_tag 'settings[default_project]', @settings['default_project'] %><br/>
+</p>
+

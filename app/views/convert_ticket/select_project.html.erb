@@ -5,7 +5,7 @@
     <%= hidden_field_tag "issue[custom_field_values][#{@otrsField.id}]", "ref:" + params[:id] %>
     <%= hidden_field_tag "issue[custom_field_values][#{@ticketTypeField.id}]", @ticket_type_value %>
     <%=t :project %>: <%= f.select :project_id, @projects.collect {|p| [p.name, p.id]},
-                                   {:required => true, :prompt => "Select a project"},
+                                   {:required => true, :prompt => "Select a project", :selected => @project_id},
                                    {:class => "chzn-select", :id => "ticket-project"}%> <br />
     <%=t :title %>: <%= f.text_field :subject , :id => "ticket-title"%>
     <!-- button_tag is not recognized for some reason. no onClick needed, as view is updated in text_field onChange anyway.

@@ -8,6 +8,10 @@ class ConvertTicketController < ApplicationController
 
   def select_project
     @projects = Project.visible.sort_by { |p| p.name.downcase }
+    default_project = Project.find(Setting.plugin_chiliproject_otrs2_chili['default_project'])
+    unless default_project.nil?
+      @project_id = default_project.id
+    end
     @issue = Issue.new
     @issue.subject = @otrsTicket.otrs_ticket_title
     @issue.description = @otrsTicket.otrs_ticket_body
